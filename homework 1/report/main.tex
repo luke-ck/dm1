@@ -1,0 +1,227 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Packages
+\documentclass[10pt, a4paper]{article}
+\usepackage[top=3cm, bottom=4cm, left=3.5cm, right=3.5cm]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,amscd, fancyhdr, color, comment, graphicx, environ}
+\usepackage{float}
+\usepackage{mathrsfs}
+\usepackage[math-style=ISO]{unicode-math}
+\setmathfont{TeX Gyre Termes Math}
+\usepackage{lastpage}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{enumerate}
+\usepackage[shortlabels]{enumitem}
+\usepackage{fancyhdr}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{sectsty}
+\usepackage{thmtools}
+\usepackage{shadethm}
+\usepackage{hyperref}
+\usepackage{setspace}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Environment setup
+\mdfsetup{skipabove=\topskip,skipbelow=\topskip}
+\newrobustcmd\ExampleText{%
+An \textit{inhomogeneous linear} differential equation has the form
+\begin{align}
+L[v ] = f,
+\end{align}
+where $L$ is a linear differential operator, $v$ is the dependent
+variable, and $f$ is a given non−zero function of the independent
+variables alone.
+}
+
+\mdtheorem[style=theoremstyle]{Problem}{Problem}
+\newenvironment{Solution}{\textbf{Solution.}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Fill in the appropriate information below
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}     
+\newcommand\course{Data Mining I}                      % <-- course name   
+\newcommand\hwnumber{1}                         % <-- homework number
+\newcommand\Information{XXX/xxxxxxxx}           % <-- personal information
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Page setup
+\pagestyle{fancy}
+\headheight 35pt
+\lhead{\today}
+\rhead{\includegraphics[width=2.5cm]{eth_logo_kurz_pos.eps}} % <-- school logo(please upload the file first, then change the name here)
+\lfoot{}
+\pagenumbering{arabic}
+\cfoot{\small\thepage}
+\rfoot{}
+\headsep 1.2em
+\renewcommand{\baselinestretch}{1.25}       
+\mdfdefinestyle{theoremstyle}{%
+linecolor=black,linewidth=1pt,%
+frametitlerule=true,%
+frametitlebackgroundcolor=gray!20,
+innertopmargin=\topskip,
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Add new commands here
+\renewcommand{\labelenumi}{\alph{enumi})}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\NN}{\mathbb N}
+\DeclareMathOperator{\Mod}{Mod} 
+\renewcommand\lstlistingname{Algorithm}
+\renewcommand\lstlistlistingname{Algorithms}
+\def\lstlistingautorefname{Alg.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Begin now!
+
+
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{3cm}
+            
+        \Huge
+        \textbf{Homework 1}
+        
+            
+        \vspace{1.5cm}
+        \Large
+            
+        \textbf{Lucas Cosier}                      % <-- author
+        
+            
+        \vfill
+        
+        \course \
+            
+        \vspace{1cm}
+            
+        \includegraphics[width=0.4\textwidth]{eth_logo_kurz_pos.eps}
+        \\
+        
+        \Large
+        
+        \today
+            
+    \end{center}
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Start the assignment now
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%New problem
+\newpage
+\begin{table}[t!]
+        \centering
+        \resizebox{14cm}{!}{
+        \begin{tabular}{ p{1.7cm}c|c|c|c|c|c }
+         \hline
+        %  $A1$ & Description \\
+        %  \hline
+         Type & Manhattan & Hamming & Euclidean & Chebyshev & Minkowski d=3 & Minkowski d=4 \\
+         \hline
+         \hline
+         \textbf{Mean}  \\ \hline
+        %  \hline
+         intra &  11.665 & 102.0975 &  1.3   &   0.3675 &  0.6875 &  0.5275 \\
+         inter & 12.609 & 135.779  & 1.277  & 0.372 &  0.665  & 0.509 \\
+         overall &  12.272 & 124.070  & 1.286 &  0.372 &  0.674 & 0.517 \\
+        %  \hline
+         \hline
+        %  $A2$ & Description\\
+        %  \hline
+        %  $l_2$-norm  & Euclidean distance \\
+         \textbf{Variance} \\ \hline
+         intra & 2.21 & 481.8 & 0.0054 & 0.0018 & 0.00168 & 0.00141 \\
+         inter & 1.94 & 922.5 & 0.0013 & 0.0007 & 0.0004 & 0.0004 \\
+         overall & 2.11 & 1020.5 & 0.00256 & 0.001 & 0.0009 & 0.0008 \\
+         \hline
+        \end{tabular}}
+        \caption{Reported distance means and variances for each metric. Intra means within the same news group, e.g. \texttt{comp.graphics:comp.graphics}, and inter means between different groups.}
+        \label{table-1}
+        \end{table}
+\begin{Problem}
+
+\begin{enumerate}
+    \item \begin{Solution}
+        Table \ref{table-1} summarizes the statistics gotten by running the provided scripts with the necessary implementation required to solve task 1.a).
+    \end{Solution}
+    \item \begin{Solution}
+        Per Table \ref{table-1}, lowest intra (and overall) mean reported for \textit{all} distances was for \texttt{comp.sys.mac.hardware}, and highest using Chebyshev and Minkowski (both) for \texttt{rec.autos}. This can mean that on average, hardware articles have similar topics, while papers about autos tend to be more varied, or that the magnitude between texts in the automotive area is bigger (bigger differences in text length). One abnormality is that not all distance measures agree that intra means should be lower than their inter counterparts. It can be seen that $L_2, L_3, L_4-\text{norms}$ (from here on out we will refer to Minkowski with $d=3$ and $d=4$ as $L_3, L_4$ and the usual Manhattan and Euclidean as $L_1, L_2$) report higher intra means than both the inter and total samples. This can be the case if there exist outliers.
+        \end{Solution}
+    \item \begin{Solution}  One would be inclined to choose the Hamming distance, since it has the highest variance between groups, of ~9.225e+02 (Table \ref{table-1}), with a standard deviation (not reported here) of ~3.03e+01. Intuitively, the higher the variance, the more spread out are the clusters of documents, and hence based on variance alone one could reason the best separation is given by this metric. However, for the Hamming distance, it could also be the case that large variance can be attributed to the fact that document lengths are not equal. Therefore, one other candidate would be the $L_1$ metric. \end{Solution}
+    \item \begin{Solution}
+        For tf-idf vectors, the range of the cosine distance is between 0 and 1, since the term frequency cannot be negative. Usually it will range between -1 and 1, since the highest (or lowest) similarity is achieved by vectors which are identical (or point in different directions). Since we know a dot product between orthogonal vectors is 0, this will represent decorrelation. The intuition is the same for increasing dimensionality, it effectively represents the angle between two vectors. This metric is more robust in higher dimensions since it doesn't take the magnitude into account
+    \end{Solution}
+    \item \begin{Solution}
+        The $L_1$ norm is more robust to outliers since it doesn't square the differences. This means that the outliers will have less of a contribution when fitting a model to the data. On the other hand, data becomes more sparse as the number of dimensions increases (as the volume it occupies increases with each dimension), and the average distance between vectors increases, as the ratio between the nearest and farthest points approaches 1. Because all points are uniformly distant from each other, the notion of similarity is meaningless in these metrics. Again, because of the lack of the square, $L_1$ is more robust against this phenomenon than the $L_2-\text{norm}$. The reported variance for $L_2$ is of several orders of magnitude smaller than $L_1$, supporting the claim that the dataset is high dimensional. In this case, the $L_2-\text{norm}$ would provide poorer clusters (separation) than $L_1$.
+    \end{Solution}
+\end{enumerate}
+
+
+\end{Problem}
+
+\begin{Problem}
+\begin{enumerate}
+    \item 
+    \begin{enumerate}
+        \item \begin{Solution}
+    is a metric.
+    \end{Solution} 
+    \item \begin{Solution}
+        not a metric. $x=\left[-1, 1\right]^\top, y=\left[0, 1\right]^\top \Rightarrow \sum_{i=1}^2x_iy_i(x_i-y_i)^2 = -1 < 0$ 
+    \end{Solution}
+    \item \begin{Solution}
+        is a metric.
+    \end{Solution}
+    \item \begin{Solution}
+        not a metric. Take $x, y \in \left\{\left[\frac{1}{3}, \frac{2}{3}\right]^\top, \left[\frac{2}{3}, \frac{1}{3}\right]^\top\right\} \Rightarrow \sum_i x_i \log(\frac{x_i}{y_i})=\frac{1}{3}\log(\frac{1}{2}) + \frac{2}{3}\log(\frac{1}{2}) = \log(\frac{1}{2}) < 0$
+    \end{Solution}
+    \item \begin{Solution}
+        is a metric.
+    \end{Solution}
+    \end{enumerate}
+    \item
+    \begin{enumerate}
+        \item \begin{Solution}
+            we have that the Minkowski distance is $d(x,y)=\left(\sum_i|x_i-y_i|^p\right)^{\frac{1}{p}}$. Therefore, for $a\in\mathbb{R}$, $d(ax, ay) = \left(\sum_i|ax_i-ay_i|^p\right)^{\frac{1}{p}}=\left(\sum_i|a(x_i-y_i)|^p\right)^{\frac{1}{p}}=\left(\sum_i|a|^p|x_i-y_i|^p\right)^{\frac{1}{p}}$ where the last equality follows from multipicativity. Then, to conclude, $d(ax,ay)=|a|\left(\sum_i|x_i-y_i|^p\right)^{\frac{1}{p}}=|a|d(x,y)$.
+        \end{Solution}
+        \item \begin{Solution}
+            $d(x+z,y+z)=\left(\sum_i|x_i+z_i-(y_i+z_i)|^p\right)^{\frac{1}{p}}=\left(\sum_i|x_i-y_i|^p\right)^{\frac{1}{p}}=d(x,y)$
+        \end{Solution}
+    \end{enumerate}
+    \item \begin{Solution}
+        Since $d(ax,ay)=\left\{ \begin{array}{ll} 1 & \text{if \space}  ax = ay \\ 0 & \text{if \space}  ax \neq ay \\
+        \end{array}\right.$ the expressions can be further simplified by $a$ and we get the original metric back. Therefore, $d(ax,ay)=d(x,y)$. Homogeneity would therefore only hold for $a=1$. 
+    \end{Solution}
+    \item \begin{Solution}
+        The metric does not fulfill the property of \textit{translation invariance}. Counterexample:
+        pick two basis vectors $x = \left[0,1\right]^\top, y = \left[1,0\right]^\top$. Let the translating vector be $z=y$. Then, $d(\left[1,1\right]^\top, \left[0,2\right]^\top) = \frac{2}{\pi}\arccos\left(\frac{1}{\sqrt{2}}\right) = \frac{2}{\pi} \cdot \frac{\pi}{4} = \frac{1}{2}$. However, note that $d(\left[0,1\right]^\top, \left[1,0\right]^\top) = \frac{2}{\pi}\arccos(0) = 1$, therefore $d(x+z, y+z) \neq d(x,y)$.
+    \end{Solution}
+\end{enumerate}
+
+\end{Problem}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Complete the assignment now
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
