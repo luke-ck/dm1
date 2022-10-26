@@ -30,7 +30,7 @@ def constrained_dtw(x, y, w):
         D[i, max(0, i - w):min(m, i + w)] = np.inf
 
     for i in range(1, n):
-        for j in range(max(1, i - w), min(m, i + w)):
+        for j in range(max(1, i - w), min(m, i + w + 1)):
             D[i, j] = manhattan_distance(x[i], y[j]) + min(D[i - 1, j - 1],  # match
                                                            D[i - 1, j],  # deletion
                                                            D[i, j - 1])  # insertion

@@ -28,8 +28,7 @@ def floyd_warshall(A):
     n = A.shape[0]
     for k in range(n):
         for i in range(n):
-            for j in range(n):
-                D[i, j] = min(A[i, j], A[i, k] + A[k, j])
+            D[i, :] = np.minimum(D[i, :], D[i, k] + D[k, :])
     return D
 
 
@@ -56,9 +55,9 @@ def sp_kernel(S1, S2):
     K = 0
 
     for i in range(n):
-        for j in range(i, n):
+        for j in range(i+1, n):
             for k in range(m):
-                for l in range(k, m):
+                for l in range(k+1, m):
                     K += 1 if S1[i, j] == S2[k, l] else 0
 
-    return K / (n * (n - 1) / 2 * m * (m - 1) / 2)
+    return K
