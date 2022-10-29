@@ -1,21 +1,18 @@
 import argparse
 import os
 import sys
-
-import scipy.io
-from numba import jit
-
+from scipy.io import loadmat
 from shortest_path_kernel import floyd_warshall, sp_kernel
 import numpy as np
 import time
 
-def compute_sp_kernel(A, B):
 
-    K = np.zeros((A.shape[0], B.shape[0]), dtype=np.float32)
+def compute_sp_kernel(A, B):
+    K = []
     for i in range(len(A)):
-        for j in range(i, len(B)):
-            K[i, j] = sp_kernel(A[i], B[j])
-            K[j, i] = K[i, j]
+        for j in range(len(B)):
+            K.append(sp_kernel(A[i], B[j]))
+    K = np.array(K, dtype=np.float64)
     return np.mean(K)
 
 
@@ -55,7 +52,7 @@ if __name__ == '__main__':
     os.makedirs(args.outdir, exist_ok=True)
 
     # Read the file
-    mat = scipy.io.loadmat("{}/{}".format(args.datadir, 'MUTAG.mat'))
+    mat = loadmat("{}/{}".format(args.datadir, 'MUTAG.mat'))
 
     label = np.reshape(mat['lmutag'], (len(mat['lmutag'], )))
     data = np.reshape(mat['MUTAG']['am'], (len(label),))
@@ -69,7 +66,7 @@ if __name__ == '__main__':
     S = [S1, S2]
     # Create the output file
     try:
-        file_name = "{}/graphs_output-test.txt".format(args.outdir)
+        file_name = "{}/graphs_output.txt".format(args.outdir)
         f_out = open(file_name, 'w')
     except IOError:
         print("Output file {} cannot be created".format(file_name))
@@ -86,6 +83,5 @@ if __name__ == '__main__':
     for i in range(len(S)):
         for j in range(i, len(S)):
             res = timeit(compute_sp_kernel)(S[i], S[j])
-            f_out.write('{}\t{}\n'.format(
-                '{}:{}'.format(lst_group[i], lst_group[j]),
-                res))
+            f_out.write('{}:{}\t{}\n'.format(lst_group[i], lst_group[j], res))
+    sys.exit(0)

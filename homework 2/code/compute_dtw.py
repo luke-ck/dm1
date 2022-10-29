@@ -12,6 +12,7 @@ import os
 import sys
 import argparse
 import numpy as np
+from numba import jit, prange
 
 
 def manhattan_distance(x, y):
@@ -19,23 +20,23 @@ def manhattan_distance(x, y):
     return np.sum(abs_dist)
 
 
+@jit(nopython=True)
 def constrained_dtw(x, y, w):
     n = len(x)
     m = len(y)
-    D = np.zeros((n, m))
-
+    D = np.zeros((n + 1, m + 1)) + np.inf
     w = max(w, abs(n - m))
 
-    for i in range(1, n):
-        D[i, max(0, i - w):min(m, i + w)] = np.inf
+    D[0, 0] = 0
+    for i in prange(1, n + 1):
+        D[i, max(0, i - w):min(m + 1, i + w + 1)] = 0
 
-    for i in range(1, n):
-        for j in range(max(1, i - w), min(m, i + w + 1)):
-            D[i, j] = manhattan_distance(x[i], y[j]) + min(D[i - 1, j - 1],  # match
-                                                           D[i - 1, j],  # deletion
-                                                           D[i, j - 1])  # insertion
-
-    return D[n - 1, m - 1]
+    for i in range(1, n + 1):
+        for j in range(max(1, i - w), min(m + 1, i + w + 1)):
+            D[i, j] = np.abs(x[i - 1] - y[j - 1]) + min(D[i - 1, j - 1],  # match
+                                                        D[i - 1, j],  # deletion
+                                                        D[i, j - 1])  # insertion
+    return D[-1, -1]
 
 
 if __name__ == '__main__':
@@ -103,7 +104,6 @@ if __name__ == '__main__':
 
                     # Compute Manhattan distance
                     vec_sim[0] += manhattan_distance(x, y)
-
                     # Compute DTW distance for all values of hyperparameter w
                     for i, w in enumerate(w_vals):
                         vec_sim[i + 1] += constrained_dtw(x, y, w)

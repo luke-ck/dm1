@@ -3,13 +3,16 @@ import numpy as np
 from numba import jit
 
 
-def prepare_adj_matrix(A):
+def prepare_adj_matrix(A) -> np.ndarray[np.uint16]:
     A[A == 0] = np.iinfo(np.uint8).max  # set all 0s to max uint8
+    # the matrix has precision uint16 because we need to make sure that
+    # when summing over possibly max values (which are uint8), we don't overflow
+    # this is the case when A.shape[0] < 257 (because 257 * 255 = 65280) and max uint16 is 65535
     np.fill_diagonal(A, 0)
     return A
 
 
-def floyd_warshall(A):
+def floyd_warshall(A) -> np.ndarray[np.uint16]:
     """Implement the Floyd--Warshall on an adjacency matrix A.
 
     Parameters
@@ -33,7 +36,7 @@ def floyd_warshall(A):
 
 
 @jit(nopython=True)
-def sp_kernel(S1, S2):
+def sp_kernel(S1, S2) -> float:
     """Calculate shortest-path kernel from two shortest-path matrices.
 
     Parameters
@@ -58,6 +61,6 @@ def sp_kernel(S1, S2):
         for j in range(i+1, n):
             for k in range(m):
                 for l in range(k+1, m):
-                    K += 1 if S1[i, j] == S2[k, l] else 0
+                    K += (S1[i, j] == S2[k, l])
 
-    return K
+    return float(K)
