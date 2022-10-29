@@ -1,6 +1,6 @@
 """Skeleton file for your solution to the shortest-path kernel."""
 import numpy as np
-from numba import jit
+# from numba import jit
 
 
 def prepare_adj_matrix(A) -> np.ndarray[np.uint16]:
@@ -35,7 +35,7 @@ def floyd_warshall(A) -> np.ndarray[np.uint16]:
     return D
 
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def sp_kernel(S1, S2) -> float:
     """Calculate shortest-path kernel from two shortest-path matrices.
 

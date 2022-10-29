@@ -64,6 +64,7 @@ if __name__ == '__main__':
     S1 = S[label == 1]
     S2 = S[label == -1]
     S = [S1, S2]
+    sp_kernel(S1[0], S2[0])  # warm up to compile numba functions
     # Create the output file
     try:
         file_name = "{}/graphs_output.txt".format(args.outdir)

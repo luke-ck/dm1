@@ -12,7 +12,7 @@ import os
 import sys
 import argparse
 import numpy as np
-from numba import jit, prange
+# from numba import jit
 
 
 def manhattan_distance(x, y):
@@ -20,7 +20,7 @@ def manhattan_distance(x, y):
     return np.sum(abs_dist)
 
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def constrained_dtw(x, y, w):
     n = len(x)
     m = len(y)
@@ -28,9 +28,11 @@ def constrained_dtw(x, y, w):
     w = max(w, abs(n - m))
 
     D[0, 0] = 0
-    for i in prange(1, n + 1):
+    # initialisation
+    for i in range(1, n + 1):
         D[i, max(0, i - w):min(m + 1, i + w + 1)] = 0
 
+    # recursively compute the distance matrix
     for i in range(1, n + 1):
         for j in range(max(1, i - w), min(m + 1, i + w + 1)):
             D[i, j] = np.abs(x[i - 1] - y[j - 1]) + min(D[i - 1, j - 1],  # match
