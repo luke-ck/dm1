@@ -124,7 +124,7 @@ def main():
     x_trn, y_trn, x_tst, y_tst = preprocess_dataset(args.traindir, args.testdir)
 
     ks = np.arange(args.mink, args.maxk + 1, 2)
-    knn_mat = compute_knn(x_trn, x_tst) # numba warmup
+    knn_mat = compute_knn(x_trn, x_tst)  # numba warmup
 
     for k in ks:
         knn_mat = compute_knn(x_trn, x_tst, k)
