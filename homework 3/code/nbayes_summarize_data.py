@@ -1,7 +1,11 @@
 import argparse
-from typing import Tuple
+from typing import Tuple, List
 import pandas as pd
 import numpy as np
+from numpy import ndarray
+from pandas import DataFrame, Series
+
+CTR = 0  # used to differentiate what label to write to file
 
 
 def compute_frequency_per_feature(mat: np.ndarray, col: int) -> np.ndarray:
@@ -14,7 +18,7 @@ def compute_frequency_per_feature(mat: np.ndarray, col: int) -> np.ndarray:
     Returns:
         freq (np.ndarray): Frequency of each feature in the column
     """
-    return np.bincount(mat[:, col].astype(np.int64))[1:]
+    return np.bincount(mat[:, col].astype(np.int64))[1:11]
 
 
 def split_by_label(features, labels):
@@ -24,7 +28,7 @@ def split_by_label(features, labels):
     return X_0, X_1
 
 
-def compute_frequency_counts_features(features: np.ndarray) -> np.ndarray:
+def compute_frequency_counts_features(features: np.ndarray, sizes) -> np.ndarray:
     """
     Compute the frequency of each feature in each class.
     Args:
@@ -34,31 +38,44 @@ def compute_frequency_counts_features(features: np.ndarray) -> np.ndarray:
     """
     samples = features.shape[0]
     no_features = features.shape[1]
-
     counts = np.zeros((no_features, 10))
     for col in range(no_features):
         freq = compute_frequency_per_feature(features, col)
         if freq.shape[0] < 10:
             freq = np.append(freq, np.zeros(10 - freq.shape[0]))
-        counts[col] = freq / samples
+        counts[col] = freq / (samples - sizes[col])
     return counts
 
 
-def split_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-    """Split the data into features and labels
+def split_data(data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Split the data into features and labels. Labels are returned as a numpy array.
     Args:
         data (list): List of strings
     """
-    data.dropna(inplace=True)  # drop rows with missing values
-    x = data.iloc[:, :-1].to_numpy()
-    y = data.iloc[:, -1].to_numpy()
+
+    x = data.iloc[:, :-1]
+    y = data.iloc[:, -1]
     return x, y
 
 
-def preprocess_dataset(data_dir):
+def count_nans(x: List[pd.DataFrame]) -> List[pd.Series]:
+    """Count the number of NaNs in each column
+    Args:
+        x (List[pd.DataFrame]): List of dataframes
+    Returns:
+        counts (List[pd.Series]): List of series containing the counts
+    """
+    counts = []
+    for i in range(len(x)):
+        counts.append(x[i].isna().sum())
+    return counts
+
+
+def preprocess_dataset(data_dir: str, test: bool = False) -> Tuple[List[ndarray | ndarray], ndarray, List[Series]]:
     """Preprocess the dataset
     Args:
         data_dir (str): Path to the dataset directory
+        test (bool): Whether the dataset is the test set
     Returns:
         x (np.ndarray): features (n, d)
         y (np.ndarray): labels (n, )
@@ -66,26 +83,61 @@ def preprocess_dataset(data_dir):
     TEXTFILE = '/' + 'tumor_info.txt'
 
     data = pd.read_csv(data_dir + TEXTFILE, sep='\t', header=None)
-
-    # split into features and labels
     x, y = split_data(data)
-    return x.astype(np.int64), y.astype(np.int8)
+    if test:
+        no_nans = count_nans([x])
+        print("Number of NaNs in test set: {}".format(no_nans[0]))
+        x = handle_nans([x], test=True)
+        return x, y.to_numpy().astype(np.int8), no_nans
+
+    train_sets = split_by_class(x, y)
+    no_nans = count_nans(train_sets)
+    train_sets = handle_nans(train_sets)
+
+    return train_sets, y.to_numpy().astype(np.int8), no_nans
 
 
-def make_prediction(freq_0: np.ndarray, freq_1: np.ndarray, prior_y0: float, prior_y1: float, x_tst: np.ndarray) -> int:
+def handle_nans(x: List[pd.DataFrame], test: bool = False) -> List[np.ndarray]:
+    """Handle NaNs in the dataset. Return a list of numpy arrays.
+    Args:
+        x (List[pd.DataFrame]): List of dataframes
+    Returns:
+        x (List[pd.DataFrame]): List of dataframes
+        test (bool): Whether the dataset is the test set
+    """
+    if test:
+        return [x[0].to_numpy().astype(np.int8)]
+
+    train_sets = []
+    for i in range(len(x)):
+        train_sets.append(x[i].copy().replace(np.nan, 11).to_numpy())  # hacky at best. replace nan with 11 since
+        # we know that the values are between 1 and 10
+    return train_sets
+
+
+def split_by_class(x: pd.DataFrame, y: pd.DataFrame) -> List[pd.DataFrame]:
+    classes = np.unique(y)
+    features_under_class = []
+    for i in range(len(classes)):
+        features_under_class.append(x[y == classes[i]])
+    return features_under_class
+
+
+def make_prediction(freqs: List[np.ndarray | np.ndarray], priors: List[float], x_tst: np.ndarray) -> int:
     """
     Make a prediction for each sample in the test set.
     Args:
-        freq_0 (np.ndarray): Probability P(x_i | y=0)
-        freq_1 (np.ndarray): Probability P(x_i | y=1)
-        prior_y0 (float): Prior probability of class 0
-        prior_y1 (float): Prior probability of class 1
+        freqs (List[np.ndarray | np.ndarray]): List of feature frequencies
+        priors (List[float]): List of priors
         x_tst (np.ndarray): Test data (d, )
     Returns:
         pred (int): Predicted class
     """
     p0max = 0
     p1max = 0
+    freq_0, freq_1 = freqs
+    prior_y0, prior_y1 = priors
+
     for i in range(x_tst.shape[0]):
         p0 = freq_0[i, x_tst[i] - 1]
         p1 = freq_1[i, x_tst[i] - 1]
@@ -105,38 +157,37 @@ def make_prediction(freq_0: np.ndarray, freq_1: np.ndarray, prior_y0: float, pri
     return pred
 
 
-def write_output(outdir, counts_0, counts_1):
+def write_output(outdir, counts):
+    global CTR
+
+    assert CTR < 2, "There should only be two labels to write to file"
+    CTR += 1
     values = np.arange(1, 11, 1)[np.newaxis, :]
-    output_0 = np.concatenate((values, counts_0), axis=0).T
-    output_1 = np.concatenate((values, counts_1), axis=0).T
-    output = [output_0, output_1]
+    output = np.concatenate((values, counts), axis=0).T
     COLUMNS = ["value", "clump", "uniformity", "marginal", "mitoses"]
     TEXTFILE = '/output_summary_class_'
     # write to file
-    for i in range(2):
-        label = 2 if i == 0 else 4
-        df = pd.DataFrame(output[i], columns=COLUMNS).set_index("value")
-        df.index = df.index.astype(int)
-        df.to_csv(outdir + TEXTFILE + str(label) + '.txt', sep='\t', float_format='%.3f')
+
+    label = 2 if CTR % 2 != 0 else 4
+    df = pd.DataFrame(output, columns=COLUMNS).set_index("value")
+    df.index = df.index.astype(int)
+    df.to_csv(outdir + TEXTFILE + str(label) + '.txt', sep='\t', float_format='%.3f')
 
 
-def make_predictions(counts_0, counts_1, prior_y0, prior_y1, x_tst):
+def make_predictions(counts, priors, x_tst):
     """
-    Make predictions for each sample in the test set.
+    Make predictions for the test set.
     Args:
-        counts_0 (np.ndarray): Probability P(x_i | y=0)
-        counts_1 (np.ndarray): Probability P(x_i | y=1)
-        prior_y0 (float): Prior probability of class 0
-        prior_y1 (float): Prior probability of class 1
+        counts (List[np.ndarray | np.ndarray]): List of feature frequencies
+        priors (List[float]): List of priors
         x_tst (np.ndarray): Test data (n, d)
     Returns:
-        preds (np.ndarray): Predictions for each sample in the test set (n, )
+        preds (np.ndarray): Predictions (n, )
     """
-    predictions = []
+    preds = np.zeros(x_tst.shape[0], dtype=np.int8)
     for i in range(x_tst.shape[0]):
-        pred = make_prediction(counts_0, counts_1, prior_y0, prior_y1, x_tst[i])
-        predictions.append(pred)
-    return np.array(predictions)
+        preds[i] = make_prediction(counts, priors, x_tst[i])
+    return preds
 
 
 def main():
@@ -148,28 +199,34 @@ def main():
     args = parser.parse_args()
 
     # preprocess the dataset
-    x_trn, y_trn = preprocess_dataset(args.traindir)
+    x_trn, y_trn, no_nans = preprocess_dataset(args.traindir)
 
+    assert len(x_trn) == 2, "There should be two classes in the training set."
     # split the data into two classes
-    X_0, X_1 = split_by_label(x_trn, y_trn)
-    prior_y0 = len(X_0) / len(x_trn)
-    prior_y1 = len(X_1) / len(x_trn)
+    priors = []
+    sizeof_x_trn = 0
+    for i in range(len(x_trn)):
+        sizeof_x_trn += x_trn[i].shape[0]
+    for i in range(len(x_trn)):
+        priors.append(len(x_trn[i]) / sizeof_x_trn)
     # compute the frequency of each feature in each class
-    counts_0 = compute_frequency_counts_features(X_0)
-    counts_1 = compute_frequency_counts_features(X_1)
+    freqs = []
+    for i, counts in enumerate(no_nans):
+        freqs.append(compute_frequency_counts_features(x_trn[i], counts))
 
-    # write the output to a file
-    write_output(args.outdir, counts_0, counts_1)
+    for freq in freqs:
+        # write the output to a file
+        write_output(args.outdir, freq)
 
     x_tst = np.array([5, 2, 3, 1])
     # make predictions on the test set
-    pred = make_prediction(counts_0, counts_1, prior_y0, prior_y1, x_tst)
-    print(pred)
+    pred = make_prediction(freqs, priors, x_tst)
+    print("Sample test point prediction:", pred)
     if args.testdir:
-        x_tst, y_tst = preprocess_dataset(args.testdir)
+        x_tst, y_tst, _ = preprocess_dataset(args.testdir, test=True)
         # make predictions on the test set
-        pred = make_predictions(counts_0, counts_1, prior_y0, prior_y1, x_tst)
-        print(pred)
+        preds = make_predictions(freqs, priors, x_tst[0].astype(np.int8))
+        print("Predictions: ", preds)
 
 
 if __name__ == "__main__":
