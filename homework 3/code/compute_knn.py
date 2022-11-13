@@ -36,6 +36,24 @@ def accuracy(y_pred, y_tst):
     return np.mean(y_pred == y_tst)
 
 
+def recall(y_pred, y_tst):
+    """Compute the recall of the predictions
+    Args:
+        y_pred (np.ndarray): Predicted labels (n, )
+        y_tst (np.ndarray): True labels (n, )
+    """
+    return np.sum(y_pred[y_tst == 1] == 1) / np.sum(y_tst == 1)
+
+
+def precision(y_pred, y_tst):
+    """Compute the precision of the predictions
+    Args:
+        y_pred (np.ndarray): Predicted labels (n, )
+        y_tst (np.ndarray): True labels (n, )
+    """
+    return np.sum(y_pred[y_tst == 1] == 1) / np.sum(y_pred == 1)
+
+
 def split_features_by_lines(data: list[str]) -> list[list[str]]:
     """Split the data by lines. This also removes the header and the string ids
     :param:
@@ -124,20 +142,21 @@ def main():
     x_trn, y_trn, x_tst, y_tst = preprocess_dataset(args.traindir, args.testdir)
 
     ks = np.arange(args.mink, args.maxk + 1, 2)
-    knn_mat = compute_knn(x_trn, x_tst)  # numba warmup
+    compute_knn(x_trn, x_tst)  # numba warmup
 
     for k in ks:
         knn_mat = compute_knn(x_trn, x_tst, k)
         y_pred = predict_labels(y_trn, knn_mat)
         acc = accuracy(y_pred, y_tst)
-        print('k = {}, acc = {}'.format(k, acc))
-
-
+        rec = recall(y_pred, y_tst)
+        prec = precision(y_pred, y_tst)
+        print('k = {}, acc = {}, rec = {}, prec = {}'.format(k, acc, rec, prec))
 
     # knn_mat = compute_knn(x_trn, x_tst, k=4)
     # print("accuracy", accuracy(predict_labels(y_trn, knn_mat), y_tst))
     # knn_mat = compute_knn(x_trn, x_tst, k=1)
     # print("accuracy", accuracy(predict_labels(y_trn, knn_mat), y_tst))
+
 
 if __name__ == '__main__':
     main()
