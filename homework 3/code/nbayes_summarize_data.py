@@ -1,9 +1,9 @@
 import argparse
+import os
 from typing import Tuple, List
 import pandas as pd
 import numpy as np
 from numpy import ndarray
-from pandas import DataFrame, Series
 
 CTR = 0  # used to differentiate what label to write to file
 
@@ -71,7 +71,7 @@ def count_nans(x: List[pd.DataFrame]) -> List[pd.Series]:
     return counts
 
 
-def preprocess_dataset(data_dir: str, test: bool = False) -> Tuple[List[ndarray | ndarray], ndarray, List[Series]]:
+def preprocess_dataset(data_dir: str, test: bool = False) -> Tuple[List[ndarray | ndarray], ndarray, List[pd.Series]]:
     """Preprocess the dataset
     Args:
         data_dir (str): Path to the dataset directory
@@ -202,17 +202,21 @@ def main():
     x_trn, y_trn, no_nans = preprocess_dataset(args.traindir)
 
     assert len(x_trn) == 2, "There should be two classes in the training set."
-    # split the data into two classes
+
     priors = []
     sizeof_x_trn = 0
     for i in range(len(x_trn)):
         sizeof_x_trn += x_trn[i].shape[0]
     for i in range(len(x_trn)):
         priors.append(len(x_trn[i]) / sizeof_x_trn)
+
     # compute the frequency of each feature in each class
     freqs = []
     for i, counts in enumerate(no_nans):
         freqs.append(compute_frequency_counts_features(x_trn[i], counts))
+
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outputdir)
 
     for freq in freqs:
         # write the output to a file

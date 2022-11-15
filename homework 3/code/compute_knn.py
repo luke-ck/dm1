@@ -1,5 +1,7 @@
 import argparse
 import sys
+import os
+from typing import List, Tuple
 
 import numpy as np
 from numba import jit
@@ -27,34 +29,40 @@ def predict_labels(y_trn, knn_mat):
     return y_pred
 
 
-def accuracy(y_pred, y_tst):
+def accuracy(y_pred: np.ndarray, y_tst: np.ndarray) -> np.ndarray:
     """Compute the accuracy of the predictions
     Args:
         y_pred (np.ndarray): Predicted labels (n, )
         y_tst (np.ndarray): True labels (n, )
+    Returns:
+        Accuracy
     """
     return np.mean(y_pred == y_tst)
 
 
-def recall(y_pred, y_tst):
+def recall(y_pred: np.ndarray, y_tst: np.ndarray) -> np.ndarray:
     """Compute the recall of the predictions
     Args:
         y_pred (np.ndarray): Predicted labels (n, )
         y_tst (np.ndarray): True labels (n, )
+    Returns:
+        Recall
     """
     return np.sum(y_pred[y_tst == 1] == 1) / np.sum(y_tst == 1)
 
 
-def precision(y_pred, y_tst):
+def precision(y_pred: np.ndarray, y_tst: np.ndarray) -> np.ndarray:
     """Compute the precision of the predictions
     Args:
         y_pred (np.ndarray): Predicted labels (n, )
         y_tst (np.ndarray): True labels (n, )
+    Returns:
+        Precision
     """
     return np.sum(y_pred[y_tst == 1] == 1) / np.sum(y_pred == 1)
 
 
-def split_features_by_lines(data: list[str]) -> list[list[str]]:
+def split_features_by_lines(data: List[str]) -> List[List[str]]:
     """Split the data by lines. This also removes the header and the string ids
     :param:
         data (list[str]): Data to split
@@ -63,12 +71,13 @@ def split_features_by_lines(data: list[str]) -> list[list[str]]:
     return [i.split('\t')[1:] for i in data][1:]
 
 
-def convert_to_numpy(data):
+def convert_to_numpy(data: List[str]) -> np.ndarray:
     """Convert the data to numpy arrays. This function calls the split data by lines function
     to return a clean matrix.
-    :param:
+    Args:
         data (list[str]): Data to convert
-    :return: Numpy array
+    Returns:
+        Numpy array
 """
     return np.array(split_features_by_lines(data), dtype=np.float32)
 
@@ -76,9 +85,10 @@ def convert_to_numpy(data):
 def split_labels_by_lines(data):
     """Split the data by lines. This also removes the header and the string ids.
     The labels are converted to integers.
-    :param:
+    Args:
         data (list[str]): Data to split
-    :return: Data split by lines
+    Returns:
+         Data split by lines
     """
     data = [i.split('\t')[1].split('\n')[0] for i in data][1:]
     return [1 if i == "+" else 0 for i in data]
@@ -88,10 +98,11 @@ def convert_label_to_numpy(data):
     return np.array(split_labels_by_lines(data), dtype=np.int32)
 
 
-def preprocess_dataset(train_dir, test_dir):
+def preprocess_dataset(train_dir: str, test_dir: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Preprocess the dataset
     Args:
-        data_dir (str): Path to the dataset directory
+        train_dir (str): Path to the training data
+        test_dir (str): Path to the test data
     """
     DATASET_NAME = ['matrix_mirna_input.txt', 'phenotype.txt']
     # # read a text file with the data
@@ -129,33 +140,65 @@ def print_statistics(x_trn, y_trn, x_tst, y_tst):
     print("  Data type:", y_tst.dtype)
 
 
+def write_results(metrics: dict, output_dir: str) -> None:
+    """Write the results to a file
+    Args:
+        metrics (dict): Dictionary with the metrics
+        output_dir (str): Path to the output directory
+    """
+    TEXTFILE = '/' + 'output_knn.txt'
+
+    keys = list(metrics.keys())
+    print(keys)
+    with open(output_dir + TEXTFILE, 'w') as f:
+        metric_length = max([len(i) for i in metrics.values()])
+
+        # write the headers
+        for key in keys:
+            # as long as the key is not the last key
+            if key != keys[-1]:
+                f.write(key + '\t')
+            else:
+                f.write(key + '\n')
+
+        for i in range(metric_length):
+            for key in keys:
+                value = metrics[key][i]
+                # as long as the key is not the last key
+                if key != keys[-1]:
+                    f.write(f"{value:.2f}" + '\t')
+                else:
+                    f.write(f"{value:.2f}" + '\n')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mink", type=int, default=1)
     parser.add_argument("--maxk", type=int, default=99)
     parser.add_argument("--traindir", type=str, default='data/part1/train')
     parser.add_argument("--testdir", type=str, default='data/part1/test')
-
+    parser.add_argument("--outputdir", type=str, default='data/part1/output')
     args = parser.parse_args()
 
     # preprocess the dataset
     x_trn, y_trn, x_tst, y_tst = preprocess_dataset(args.traindir, args.testdir)
 
-    ks = np.arange(args.mink, args.maxk + 1, 2)
+    ks = np.arange(args.mink, args.maxk + 1, 1)
     compute_knn(x_trn, x_tst)  # numba warmup
-
+    metrics = {'Value of k': [], 'accuracy': [], 'recall': [], 'precision': []}
     for k in ks:
         knn_mat = compute_knn(x_trn, x_tst, k)
         y_pred = predict_labels(y_trn, knn_mat)
-        acc = accuracy(y_pred, y_tst)
-        rec = recall(y_pred, y_tst)
-        prec = precision(y_pred, y_tst)
-        print('k = {}, acc = {}, rec = {}, prec = {}'.format(k, acc, rec, prec))
+        metrics['accuracy'].append(accuracy(y_pred, y_tst))
+        metrics['recall'].append(recall(y_pred, y_tst))
+        metrics['precision'].append(precision(y_pred, y_tst))
+        metrics['Value of k'].append(int(k))
 
-    # knn_mat = compute_knn(x_trn, x_tst, k=4)
-    # print("accuracy", accuracy(predict_labels(y_trn, knn_mat), y_tst))
-    # knn_mat = compute_knn(x_trn, x_tst, k=1)
-    # print("accuracy", accuracy(predict_labels(y_trn, knn_mat), y_tst))
+    # check if directory exists, otherwise create it
+    if not os.path.exists(args.outputdir):
+        os.makedirs(args.outputdir)
+    # save the results
+    write_results(metrics, args.outputdir)
 
 
 if __name__ == '__main__':
