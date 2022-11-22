@@ -148,7 +148,7 @@ if __name__ == '__main__':
     print('Information content of the whole dataset: {0:.3f}'.format(info_content))
 
     attributes_to_try = [0, 1, 2, 3]
-    theta_to_try = [5.5, 3.0, 2.0, 2.0]
+    theta_to_try = [5.5, 3.0, 2.0, 1.0]
     print('Exercise 2.b')
     print('------------')
     for i, theta in zip(attributes_to_try, theta_to_try):

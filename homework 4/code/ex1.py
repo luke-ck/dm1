@@ -4,12 +4,12 @@ Part 1: Logistic Regression
 
 Authors: Anja Gumpinger, Dean Bodenham, Bastian Rieck
 '''
-import math
+
 
 #!/usr/bin/env python3
 
 import pandas as pd
-import numpy as np
+import math
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     model = LogisticRegression(random_state=69,
                                max_iter=1000,
                                # penalty='l1',
-                               solver='saga',)
+                               solver='liblinear',)
                                # class_weight='balanced')
     scaler = StandardScaler()
 
