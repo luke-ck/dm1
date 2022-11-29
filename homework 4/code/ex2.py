@@ -13,14 +13,15 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.base import clone
 
+
 def compute_information_content(y):
-    '''
+    """
      compute the information content of a subset X with labels y
     defined as - P(y=1|x) log_2 P(y=1|x) - P(y=0|x) log_2 P(y=0|x)
     :param y: class
     :param y: class labels
     :return: information content
-    '''
+    """
     classes = np.unique(y)
     info_content = 0
     for c in classes:
@@ -49,19 +50,16 @@ def split_data(X, y, attribute_index, theta):
 
 
 def compute_information_gain(X, y, attribute_index, theta):
-    '''
+    """
     Computes the information gain for a dataset X with labels y that is split according to the
     split defined by the pair (attribute_index, theta).
 
     :param X: feature matrix
     :param y: class labels
     :param attribute_index: index of the attribute to split on
-    :param theta: thetaold to split on
+    :param theta: threshold to split on
     :return: information gain
-    '''
-
-    # compute the information gain for the split defined by (attribute_index, theta)
-    # return the information gain
+    """
     y_left, y_right = split_data(X, y, attribute_index, theta)
     info_gain = compute_information_content(y)
 
@@ -80,7 +78,7 @@ def cross_validation(X, y, k, model):
     :param model: model to evaluate
     :return:
         mean accuracy
-        feature scores with indices of the features sorted by importance
+        (feature_index, score) feature scores with indices of the features sorted by importance
     """
 
     kf = KFold(n_splits=k, shuffle=True)
@@ -110,7 +108,9 @@ def cross_validation(X, y, k, model):
 def report_important_features(feature_names, feature_scores, top_k=2):
     """
     function that prints the most important features of a decision tree
-    :param model: decision tree model
+    :param top_k: how many features to print
+    :param feature_scores: list of tuples (feature_index, score)
+    :param feature_names: list of feature names
     :return:
     """
     for idx, feature in feature_scores[:top_k]:
