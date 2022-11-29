@@ -5,12 +5,9 @@ Part 1: Logistic Regression
 Authors: Anja Gumpinger, Dean Bodenham, Bastian Rieck
 '''
 
-
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 
 import pandas as pd
-import math
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
@@ -38,14 +35,13 @@ def compute_metrics(y_true, y_pred):
 
 
 if __name__ == "__main__":
-
     ###################################################################
     # Your code goes here.
     ###################################################################
     model = LogisticRegression(random_state=69,
                                max_iter=1000,
                                # penalty='l1',
-                               solver='liblinear',)
+                               solver='lbfgs', )
                                # class_weight='balanced')
     scaler = StandardScaler()
 
@@ -61,7 +57,7 @@ if __name__ == "__main__":
     y_tst = df_test['type'].values
 
     # Scale features
-    x_trn = scaler.fit_transform(x_trn, y_trn)
+    x_trn = scaler.fit_transform(x_trn)
 
     # check distribution of y_trn
     # print('Distribution of y_trn: ', np.unique(y_trn, return_counts=True))
@@ -74,29 +70,34 @@ if __name__ == "__main__":
 
     compute_metrics(y_tst, y_pred)
 
-    print(model.coef_)
-    print(model.intercept_)
+    print('')
+    print('Exercise 1.b')
+    print('-' * 12)
+    print('For the diabetes dataset, I would choose Logistic Regression over LDA because '
+          'the data is not balanced in this case, so LDA will not work well. This is obvious '
+          'once you set class_weight to balanced in the LR model: the accuracy drops to 0.777 '
+          '(still higher than LDA) and we get fewer false negatives, which is important since '
+          'misdiagnosis of diabetes is more dangerous than misdiagnosis of non-diabetes.')
 
-    # compute the log odds for attribute 1
+    print('')
+    print('Exercise 1.c')
+    print('-' * 12)
+    print('The performance of the model is indeed due to the class imbalance. If '
+          'the dataset were different, it would be hard to tell which model would perform better, '
+          'unless we test them; both models have their advantages and disadvantages. If I had to pick,'
+          'I would probably try LR first since it is somewhat robust to non-normal distributions '
+          'and it can be regularised, all while having a lower computational complexity for the '
+          'training objective compared to LDA.')
 
-    # print('Exercise 1.b')
-    # print('I would choose Logistic Regression for this particular dataset over LDA because
-    # logistic Regression is more robust to non-normal distributions. Also, the data is
-    # not balanced in this case, so LDA will not work well. In the case where the
-    # parameter class_weight is set to balanced, logistic regression still performs better than
-    # LDA.')
-    #
-    # print('Exercise 1.c')
-    # print('The performance of the model is indeed because of the class imbalance. If
-    # the dataset were different, it would be hard to tell which model would perform better; both
-    # models have their advantages and disadvantages.')
+    print(f"Coefficients: {model.coef_}")
+    print("Intercept: ", model.intercept_)
+    print('')
+    print('Exercise 1.d')
+    print('-' * 12)
+    print('To analyze coefficients I set the regularizer to L1. This is because L1 '
+          'induces sparsity. This allowed me to see that the most important two features '
+          'are glucose and the diabetes pedigree function. \nWithout L1 penalty, the coefficient '
+          'for npreg is 0.33. Calculating the exponential function '
+          'results in 1.38, which amounts to an increase of 39.7 percent per additional pregnancy.')
 
-    # print('Exercise 1.d')
-    # print('To analyze coefficients I set the regularizer to L1. This is because L1
-    # induces sparsity. This allowed me to see that the most important two features
-    # glucose and the diabetes pedigree function. Without L1 penalty the coefficient for
-    # the number of pregnancies npreg was 3.34e-1, and the odds of having diabetes
-    # increased by 1.387 times for every additional pregnancy.') TODO: add percentage instead
-
-    print(math.exp(model.coef_[0][0]))
-
+    # print(math.exp(model.coef_[0][0]))
